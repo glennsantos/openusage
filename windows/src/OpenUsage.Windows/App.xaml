@@ -3,36 +3,36 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
-        <SolidColorBrush x:Key="PanelBackground" Color="#F21C1C1E" />
-        <SolidColorBrush x:Key="CardBackground" Color="#FF2C2C2E" />
-        <SolidColorBrush x:Key="PrimaryText" Color="#FFF2F2F7" />
-        <SolidColorBrush x:Key="SecondaryText" Color="#FF98989F" />
-        <SolidColorBrush x:Key="TrackBrush" Color="#FF3A3A3C" />
-        <SolidColorBrush x:Key="ErrorText" Color="#FFFF6961" />
-        <SolidColorBrush x:Key="WarningText" Color="#FFF59E0B" />
+        <ResourceDictionary>
+            <!-- The palette. ThemeManager replaces this first entry with Themes/Light.xaml or Themes/Dark.xaml, so
+                 every theme brush is referenced with DynamicResource. -->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Dark.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
-        <Style x:Key="FooterButton" TargetType="Button">
-            <Setter Property="Foreground" Value="{StaticResource SecondaryText}" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="8,4" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="6"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#22FFFFFF" />
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryText}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+            <Style x:Key="FooterButton" TargetType="Button">
+                <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Padding" Value="8,4" />
+                <Setter Property="Cursor" Value="Hand" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="6"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="{DynamicResource HoverBackground}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

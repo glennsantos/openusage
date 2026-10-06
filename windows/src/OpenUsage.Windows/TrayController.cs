@@ -21,10 +21,10 @@ public sealed class TrayController : IDisposable
     private readonly DashboardViewModel _model;
     private readonly FlyoutWindow _flyout;
 
-    public TrayController()
+    public TrayController(ThemeManager theme)
     {
         _model = new DashboardViewModel(DetectProviders(_http));
-        _flyout = new FlyoutWindow(_model, Quit);
+        _flyout = new FlyoutWindow(_model, theme, Quit);
 
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Open", null, (_, _) => _flyout.ShowFlyout());
