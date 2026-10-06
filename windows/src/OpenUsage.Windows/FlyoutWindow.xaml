@@ -16,13 +16,25 @@
         <DataTemplate x:Key="MetricRowTemplate" DataType="{x:Type local:MetricRow}">
             <StackPanel Margin="0,6,0,0">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Right" Text="{Binding Value}" FontWeight="SemiBold"
-                               Foreground="{Binding AccentHex, Converter={StaticResource HexBrush}}" />
-                    <TextBlock Text="{Binding Label}" Foreground="{StaticResource SecondaryText}" />
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding Value}" FontWeight="SemiBold">
+                        <TextBlock.Style>
+                            <!-- A binding that yields no brush falls back to the property default (black), not the
+                                 inherited colour, so rows without an accent colour get the theme text colour here. -->
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{Binding AccentHex, Converter={StaticResource HexBrush}}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding AccentHex}" Value="{x:Null}">
+                                        <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock Text="{Binding Label}" Foreground="{DynamicResource SecondaryText}" />
                 </DockPanel>
                 <Grid Height="6" Margin="0,4,0,0"
                       Visibility="{Binding HasBar, Converter={StaticResource BoolToVisibility}}">
-                    <Border Background="{StaticResource TrackBrush}" CornerRadius="3" />
+                    <Border Background="{DynamicResource TrackBrush}" CornerRadius="3" />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="{Binding Fraction, Converter={StaticResource FractionStar}, ConverterParameter=filled}" />
@@ -32,17 +44,38 @@
                     </Grid>
                 </Grid>
                 <TextBlock Text="{Binding Subtitle}" FontSize="11" Margin="0,3,0,0"
-                           Foreground="{StaticResource SecondaryText}"
+                           Foreground="{DynamicResource SecondaryText}"
                            Visibility="{Binding HasSubtitle, Converter={StaticResource BoolToVisibility}}" />
             </StackPanel>
         </DataTemplate>
     </Window.Resources>
 
-    <Border Background="{StaticResource PanelBackground}" CornerRadius="10" BorderBrush="#33FFFFFF"
+    <Border Background="{DynamicResource PanelBackground}" CornerRadius="10" BorderBrush="{DynamicResource PanelBorder}"
             BorderThickness="1" Padding="12">
         <DockPanel>
-            <DockPanel DockPanel.Dock="Top" Margin="2,0,2,8">
-                <TextBlock Text="OpenUsage" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource PrimaryText}" />
+            <DockPanel DockPanel.Dock="Top" Margin="2,0,0,8">
+                <!-- DataContext is the ThemeManager, set in code. Glyphs: E770 System, E706 Brightness, E708 QuietHours. -->
+                <Button x:Name="ThemeButton" DockPanel.Dock="Right" Click="OnThemeClick" Padding="6,4"
+                        FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="13">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource FooterButton}">
+                            <Setter Property="Content" Value="&#xE770;" />
+                            <Setter Property="ToolTip" Value="Theme: match Windows. Click for Light." />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Choice}" Value="{x:Static local:ThemeChoice.Light}">
+                                    <Setter Property="Content" Value="&#xE706;" />
+                                    <Setter Property="ToolTip" Value="Theme: Light. Click for Dark." />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Choice}" Value="{x:Static local:ThemeChoice.Dark}">
+                                    <Setter Property="Content" Value="&#xE708;" />
+                                    <Setter Property="ToolTip" Value="Theme: Dark. Click to match Windows." />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <TextBlock Text="OpenUsage" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"
+                           Foreground="{DynamicResource PrimaryText}" />
             </DockPanel>
 
             <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0" LastChildFill="False">
@@ -62,24 +95,23 @@
                 <ItemsControl ItemsSource="{Binding Cards}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type local:ProviderCard}">
-                            <Border Background="{StaticResource CardBackground}" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                            <Border Background="{DynamicResource CardBackground}" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
                                 <StackPanel>
                                     <DockPanel>
                                         <TextBlock DockPanel.Dock="Right" Text="{Binding Plan}" FontSize="11"
-                                                   VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}" />
+                                                   VerticalAlignment="Center" Foreground="{DynamicResource SecondaryText}" />
                                         <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
-                                                   Foreground="{StaticResource PrimaryText}" />
+                                                   Foreground="{DynamicResource PrimaryText}" />
                                     </DockPanel>
                                     <TextBlock Text="{Binding Error}" TextWrapping="Wrap" Margin="0,6,0,0"
-                                               Foreground="{StaticResource ErrorText}"
+                                               Foreground="{DynamicResource ErrorText}"
                                                Visibility="{Binding Error, Converter={StaticResource NullToCollapsed}}" />
                                     <TextBlock Text="{Binding Warning}" TextWrapping="Wrap" Margin="0,6,0,0" FontSize="11"
-                                               Foreground="{StaticResource WarningText}"
+                                               Foreground="{DynamicResource WarningText}"
                                                Visibility="{Binding Warning, Converter={StaticResource NullToCollapsed}}" />
-                                    <ItemsControl ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource MetricRowTemplate}"
-                                                  Foreground="{StaticResource PrimaryText}" />
+                                    <ItemsControl ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource MetricRowTemplate}" />
                                     <TextBlock Text="{Binding Status}" FontSize="10" Margin="0,8,0,0"
-                                               Foreground="{StaticResource SecondaryText}" />
+                                               Foreground="{DynamicResource SecondaryText}" />
                                 </StackPanel>
                             </Border>
                         </DataTemplate>

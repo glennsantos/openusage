@@ -9,6 +9,7 @@ It is a separate .NET app, not a port of the Swift UI. The provider logic follow
 - Adds an icon to the notification area (system tray). Left-click it to open the usage panel above the taskbar. Right-click it for Open, Refresh and Quit.
 - Hovering the icon shows the pinned metrics, for example `Claude 42% · 18%`.
 - Refreshes every 5 minutes, and whenever you click **Refresh**.
+- Follows Windows' light or dark app mode. The button at the top right of the panel cycles between matching Windows, **Light** and **Dark**, and the app remembers the choice.
 - Shows only the providers you're signed in to. If you aren't signed in to any of them, all three appear with sign-in instructions.
 
 | Provider | Where the login comes from | Shown by default |

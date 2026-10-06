@@ -24,7 +24,7 @@ public sealed class InverseBoolConverter : IValueConverter
         throw new NotSupportedException();
 }
 
-/// "#F59E0B" → brush; null → the inherited foreground.
+/// "#F59E0B" → brush; null → no value, so the target falls back to its default (callers style the null case).
 public sealed class HexBrushConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>

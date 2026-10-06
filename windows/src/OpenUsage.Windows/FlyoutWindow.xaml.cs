@@ -11,14 +11,17 @@ public partial class FlyoutWindow : Window
 {
     private const double ScreenMargin = 12;
     private readonly DashboardViewModel _model;
+    private readonly ThemeManager _theme;
     private readonly Action _quit;
 
-    public FlyoutWindow(DashboardViewModel model, Action quit)
+    public FlyoutWindow(DashboardViewModel model, ThemeManager theme, Action quit)
     {
         InitializeComponent();
         _model = model;
+        _theme = theme;
         _quit = quit;
         DataContext = model;
+        ThemeButton.DataContext = theme;
         SizeChanged += (_, _) => PlaceNearTray();
     }
 
@@ -60,6 +63,8 @@ public partial class FlyoutWindow : Window
         if (!File.Exists(Log.FilePath)) Log.Info("Log opened from panel");
         Process.Start(new ProcessStartInfo(Log.FilePath) { UseShellExecute = true });
     }
+
+    private void OnThemeClick(object sender, RoutedEventArgs e) => _theme.Cycle();
 
     private void OnQuitClick(object sender, RoutedEventArgs e) => _quit();
 }

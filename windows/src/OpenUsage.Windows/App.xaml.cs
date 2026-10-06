@@ -6,6 +6,7 @@ namespace OpenUsage.Windows;
 
 public partial class App : Application
 {
+    private ThemeManager? _theme;
     private TrayController? _tray;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -13,13 +14,15 @@ public partial class App : Application
         base.OnStartup(e);
         DispatcherUnhandledException += OnUnhandledException;
         Log.Info("OpenUsage for Windows starting");
-        _tray = new TrayController();
+        _theme = new ThemeManager(Resources);
+        _tray = new TrayController(_theme);
         _tray.Start();
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
         _tray?.Dispose();
+        _theme?.Dispose();
         Log.Info("OpenUsage for Windows exiting");
         base.OnExit(e);
     }
