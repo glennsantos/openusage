@@ -14,7 +14,7 @@
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AssemblyName>OpenUsage</AssemblyName>
     <RootNamespace>OpenUsage.Windows</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <!-- Bundle WPF's native DLLs into the single-file exe instead of shipping them alongside it. -->
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
