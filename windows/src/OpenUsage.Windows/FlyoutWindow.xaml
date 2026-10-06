@@ -1,0 +1,91 @@
+<Window x:Class="OpenUsage.Windows.FlyoutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:OpenUsage.Windows"
+        Title="OpenUsage" Width="360" SizeToContent="Height" MaxHeight="640"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
+        Deactivated="OnDeactivated" KeyDown="OnKeyDown">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+        <local:NullToCollapsedConverter x:Key="NullToCollapsed" />
+        <local:HexBrushConverter x:Key="HexBrush" />
+        <local:FractionStarConverter x:Key="FractionStar" />
+        <local:FractionBrushConverter x:Key="FractionBrush" />
+
+        <DataTemplate x:Key="MetricRowTemplate" DataType="{x:Type local:MetricRow}">
+            <StackPanel Margin="0,6,0,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding Value}" FontWeight="SemiBold"
+                               Foreground="{Binding AccentHex, Converter={StaticResource HexBrush}}" />
+                    <TextBlock Text="{Binding Label}" Foreground="{StaticResource SecondaryText}" />
+                </DockPanel>
+                <Grid Height="6" Margin="0,4,0,0"
+                      Visibility="{Binding HasBar, Converter={StaticResource BoolToVisibility}}">
+                    <Border Background="{StaticResource TrackBrush}" CornerRadius="3" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{Binding Fraction, Converter={StaticResource FractionStar}, ConverterParameter=filled}" />
+                            <ColumnDefinition Width="{Binding Fraction, Converter={StaticResource FractionStar}, ConverterParameter=rest}" />
+                        </Grid.ColumnDefinitions>
+                        <Border CornerRadius="3" Background="{Binding Fraction, Converter={StaticResource FractionBrush}}" />
+                    </Grid>
+                </Grid>
+                <TextBlock Text="{Binding Subtitle}" FontSize="11" Margin="0,3,0,0"
+                           Foreground="{StaticResource SecondaryText}"
+                           Visibility="{Binding HasSubtitle, Converter={StaticResource BoolToVisibility}}" />
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Border Background="{StaticResource PanelBackground}" CornerRadius="10" BorderBrush="#33FFFFFF"
+            BorderThickness="1" Padding="12">
+        <DockPanel>
+            <DockPanel DockPanel.Dock="Top" Margin="2,0,2,8">
+                <TextBlock Text="OpenUsage" FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource PrimaryText}" />
+            </DockPanel>
+
+            <DockPanel DockPanel.Dock="Bottom" Margin="0,8,0,0" LastChildFill="False">
+                <Button DockPanel.Dock="Left" Style="{StaticResource FooterButton}" Click="OnRefreshClick"
+                        IsEnabled="{Binding IsRefreshing, Converter={x:Static local:InverseBoolConverter.Instance}}">
+                    <TextBlock Text="Refresh" />
+                </Button>
+                <Button DockPanel.Dock="Left" Style="{StaticResource FooterButton}" Click="OnLogClick">
+                    <TextBlock Text="Open Log" />
+                </Button>
+                <Button DockPanel.Dock="Right" Style="{StaticResource FooterButton}" Click="OnQuitClick">
+                    <TextBlock Text="Quit" />
+                </Button>
+            </DockPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Cards}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:ProviderCard}">
+                            <Border Background="{StaticResource CardBackground}" CornerRadius="8" Padding="12,10" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <DockPanel>
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Plan}" FontSize="11"
+                                                   VerticalAlignment="Center" Foreground="{StaticResource SecondaryText}" />
+                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource PrimaryText}" />
+                                    </DockPanel>
+                                    <TextBlock Text="{Binding Error}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                               Foreground="{StaticResource ErrorText}"
+                                               Visibility="{Binding Error, Converter={StaticResource NullToCollapsed}}" />
+                                    <TextBlock Text="{Binding Warning}" TextWrapping="Wrap" Margin="0,6,0,0" FontSize="11"
+                                               Foreground="{StaticResource WarningText}"
+                                               Visibility="{Binding Warning, Converter={StaticResource NullToCollapsed}}" />
+                                    <ItemsControl ItemsSource="{Binding Rows}" ItemTemplate="{StaticResource MetricRowTemplate}"
+                                                  Foreground="{StaticResource PrimaryText}" />
+                                    <TextBlock Text="{Binding Status}" FontSize="10" Margin="0,8,0,0"
+                                               Foreground="{StaticResource SecondaryText}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</Window>

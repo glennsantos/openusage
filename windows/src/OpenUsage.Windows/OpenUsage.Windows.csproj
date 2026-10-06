@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <UseWPF>true</UseWPF>
+    <!-- NotifyIcon (the tray icon) lives in Windows Forms; WPF has no tray API. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Lets the app be cross-compiled from macOS/Linux. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <AssemblyName>OpenUsage</AssemblyName>
+    <RootNamespace>OpenUsage.Windows</RootNamespace>
+    <Version>0.1.0</Version>
+    <!-- Bundle WPF's native DLLs into the single-file exe instead of shipping them alongside it. -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WPF and WinForms both define these names; the app uses the WPF ones. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenUsage.Core\OpenUsage.Core.csproj" />
+  </ItemGroup>
+
+</Project>
