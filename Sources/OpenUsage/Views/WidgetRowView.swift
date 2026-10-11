@@ -317,10 +317,15 @@ struct WidgetRowView: View {
                         // drops its tooltip — the timeline popover replaces it.
                         .hoverTooltip(hasHoverPopover ? nil : data.unboundedValueTooltip)
                 }
-                if let subtitle = data.unboundedSubtitle {
+                if data.unboundedSubtitle != nil || data.sourceLink != nil {
                     // Secondary, not tertiary: the subtitle is informational ("on-device estimate"),
                     // and tertiary is reserved for inactive content on glass.
-                    Text(subtitle)
+                    HStack(spacing: 4) {
+                        if let subtitle = data.unboundedSubtitle { Text(subtitle) }
+                        if let source = data.sourceLink {
+                            Link(source.label, destination: source.url)
+                        }
+                    }
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)

@@ -203,7 +203,7 @@ private struct StarButton: View {
                     layout.presentCustomizationNotice(pinned ? "Removed from menu bar" : "Starred for menu bar")
                 } else {
                     shakeTrigger += 1
-                    layout.presentCustomizationNotice(layout.pinDenialReason(metric.id) ?? "Up to 2 stars per provider", tone: .notice)
+                    layout.presentCustomizationNotice(layout.pinDenialReason(metric.id) ?? "Up to \(LayoutStore.maxPinsPerProvider) stars per provider", tone: .notice)
                 }
             } label: {
                 Image(systemName: pinned ? "star.fill" : "star")

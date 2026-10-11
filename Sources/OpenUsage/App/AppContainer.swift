@@ -22,6 +22,7 @@ final class AppContainer {
     /// Quota pace notification preferences (three independent triggers). Drives the Settings section
     /// and is read by `WidgetDataStore.evaluateNotifications`.
     let notificationSettings: NotificationSettingsStore
+    let codexResetMonitor: CodexResetMonitor
     /// Anonymous usage telemetry (mandatory daily activity and crashes, optional provider rollups).
     /// Exposed so Settings can toggle extra analytics and termination can flush queued events.
     let telemetry: TelemetryRecorder
@@ -89,12 +90,22 @@ final class AppContainer {
             defaultExpandedMetricIDs: accountDefaults(DefaultLayout.expandedMetricIDs),
             isProviderEnabled: { [enablement] in enablement.isEnabled($0) }
         )
+        let codexResetMonitor = CodexResetMonitor(
+            settings: notificationSettings,
+            isMetricEnabled: {
+                layout.visiblePlaced.contains { placed in
+                    guard let descriptor = layout.descriptor(for: placed) else { return false }
+                    return CodexResetMonitor.isNextReset(descriptor)
+                }
+            }
+        )
         let dataStore = WidgetDataStore(
             registry: registry,
             providers: providers,
             isProviderEnabled: { [enablement] in enablement.isEnabled($0) },
             orderedDescriptors: { [layout] in layout.visiblePlaced.compactMap { layout.descriptor(for: $0) } },
             notificationSettings: { notificationSettings },
+            codexResetMonitor: codexResetMonitor,
             providerIdentityKeys: accountAssembly.identityKeysByCard
         )
         let iCloudSync = ICloudUsageSyncStore(dataStore: dataStore)
@@ -127,6 +138,7 @@ final class AppContainer {
         self.enablement = enablement
         self.apiKeyProviders = apiKeyProviders
         self.notificationSettings = notificationSettings
+        self.codexResetMonitor = codexResetMonitor
         self.layout = layout
         self.dataStore = dataStore
         self.iCloudSync = iCloudSync
@@ -214,7 +226,7 @@ final class AppContainer {
                 errors: dataStore.providerErrors
             )
         })
-        self.refreshTask = Self.startPeriodicRefresh(dataStore: dataStore, telemetry: telemetry)
+        self.refreshTask = Self.startPeriodicRefresh(dataStore: dataStore, telemetry: telemetry, codexResetMonitor: codexResetMonitor)
         localAPI.start()
         // Become the notification-center delegate so banners show while frontmost — a menu-bar accessory
         // effectively always is. Notification authorization is requested the first time a trigger is
@@ -290,11 +302,13 @@ final class AppContainer {
     /// Sparkle's update bookkeeping, and unrelated global-domain changes from other processes. Waking on
     /// that, with no minimum interval before re-refreshing, collapsed the fixed 5-minute cadence into a
     /// refresh storm.
-    private static func startPeriodicRefresh(dataStore: WidgetDataStore, telemetry: TelemetryRecorder) -> Task<Void, Never> {
+    private static func startPeriodicRefresh(dataStore: WidgetDataStore, telemetry: TelemetryRecorder, codexResetMonitor: CodexResetMonitor) -> Task<Void, Never> {
         Task {
             let wakeSignal = RefreshWakeSignal()
             while !Task.isCancelled {
+                async let resets: Void = codexResetMonitor.refresh()
                 await dataStore.refreshAll()
+                await resets
                 // Re-evaluate quota pace milestones every tick — after the refresh so it sees fresh data,
                 // and on every loop (not just on a fetch) so pace worsening from elapsed time alone still
                 // alerts even with the popover closed.

@@ -2,7 +2,7 @@ import Foundation
 
 /// Resolved, ordered, capped data for the menu-bar strip, built from the pinned metrics and their live
 /// values. The renderers consume this: `groups` drives the Text style (one segment per pinned provider,
-/// each with its 1–2 pinned metrics), `bars` drives the Bars style (the first four bounded metrics — any
+/// each with its pinned metrics), `bars` drives the Bars style (the first four bounded metrics — any
 /// with a fill, not just percentages — in order). `isEmpty` means render the plain app icon.
 struct MenuBarContent: Equatable {
     /// One resolved pinned metric.
@@ -13,6 +13,7 @@ struct MenuBarContent: Equatable {
         let fraction: Double     // 0...1 fill, meaningful for bounded metrics (drives the bars)
         let isBounded: Bool      // has a limit → has a fill, so it can render as a bar
         let hasData: Bool
+        var isResetAnnouncement: Bool = false
     }
 
     /// A provider and its pinned metrics, in order. One segment of the Text strip.
@@ -85,7 +86,8 @@ enum MenuBarContentBuilder {
             value: data.menuBarValue,
             fraction: data.fraction,
             isBounded: data.isBounded,
-            hasData: data.hasData
+            hasData: data.hasData && data.showsInMenuBar,
+            isResetAnnouncement: CodexResetMonitor.isNextReset(descriptor)
         )
     }
 

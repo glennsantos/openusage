@@ -53,6 +53,8 @@ Desktop's rotating refresh token and never modifies Desktop's config, cookies, o
 
 Besides the provider API calls the vendor's own tools would make, OpenUsage fetches public [model price lists](pricing.md) about once an hour (from `raw.githubusercontent.com`, `models.dev`, and this project's GitHub Pages). These are plain downloads of public data — they carry no usage, log, or account information, and they run regardless of the analytics toggle. The spend tiles are computed from local CLI logs entirely on your Mac; no log data ever leaves it.
 
+When Codex **Next Reset** or **Codex Reset Announcements** is enabled, OpenUsage also reads the public [codex-resets.com API](https://codex-resets.com/api/docs) about every five minutes. These requests carry no provider credentials, account details, usage values, or local logs. Turning both off stops these requests. The tracker is unofficial; OpenUsage displays announced reset times and does not use its speculative probability forecasts.
+
 To avoid re-reading unchanged Claude, Codex, and pi logs after every relaunch, OpenUsage keeps their
 parsed usage events in `~/Library/Application Support/OpenUsage/log-scan-cache/`. These records contain
 the usage metadata needed for local totals, including any per-event cost already recorded by a provider,

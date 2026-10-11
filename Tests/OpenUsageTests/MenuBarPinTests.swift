@@ -1,7 +1,7 @@
 import XCTest
 @testable import OpenUsage
 
-/// Covers the menu-bar pin model on `LayoutStore`: the ≤2-per-provider rendering cap, denial
+/// Covers the menu-bar pin model on `LayoutStore`: the three-per-provider cap, denial
 /// reasons/notices, order derivation from the Customize order,
 /// disabled-provider handling, and persistence across relaunch.
 @MainActor
@@ -28,31 +28,34 @@ final class MenuBarPinTests: XCTestCase {
         XCTAssertFalse(reloadedAgain.isPinned("a.m1"))
     }
 
-    func testPerProviderCapBlocksThirdPinUntilSlotIsFreed() {
+    func testPerProviderCapAllowsThirdAndBlocksFourthUntilSlotIsFreed() {
         let store = makeStore("perProvider")
         store.setPinned(true, for: "a.m1")
         store.setPinned(true, for: "a.m2")
-
-        XCTAssertFalse(store.canPin("a.m3"))
+        XCTAssertTrue(store.canPin("a.m3"))
         store.setPinned(true, for: "a.m3")
-        XCTAssertFalse(store.isPinned("a.m3"))
-        XCTAssertEqual(store.pinnedCount(forProvider: "a"), 2)
+        XCTAssertTrue(store.isPinned("a.m3"))
+        XCTAssertFalse(store.canPin("a.m4"))
+        store.setPinned(true, for: "a.m4")
+        XCTAssertFalse(store.isPinned("a.m4"))
+        XCTAssertEqual(store.pinnedCount(forProvider: "a"), 3)
 
         // An already-pinned id stays pinnable so its toggle can still unpin it.
         XCTAssertTrue(store.canPin("a.m1"))
 
         store.setPinned(false, for: "a.m1")
-        XCTAssertTrue(store.canPin("a.m3"))
+        XCTAssertTrue(store.canPin("a.m4"))
     }
 
-    func testEachProviderCanPinUpToTwo() {
+    func testEachProviderCanPinUpToThree() {
         let store = makeStore("manyProviders")
         for provider in ["a", "b"] {
             store.setPinned(true, for: "\(provider).m1")
             store.setPinned(true, for: "\(provider).m2")
-            XCTAssertFalse(store.canPin("\(provider).m3"))
+            store.setPinned(true, for: "\(provider).m3")
+            XCTAssertFalse(store.canPin("\(provider).m4"))
         }
-        XCTAssertEqual(store.pinnedMetricIDs.count, 4)
+        XCTAssertEqual(store.pinnedMetricIDs.count, 6)
     }
 
     func testPinDenialReasonsAndFooterNotice() {
@@ -61,17 +64,18 @@ final class MenuBarPinTests: XCTestCase {
 
         store.setPinned(true, for: "a.m1")
         store.setPinned(true, for: "a.m2")
-        XCTAssertEqual(store.pinDenialReason("a.m3"), "Up to 2 stars per provider")
+        store.setPinned(true, for: "a.m3")
+        XCTAssertEqual(store.pinDenialReason("a.m4"), "Up to 3 stars per provider")
         XCTAssertNil(store.pinDenialReason("b.m1"))
 
         // A denied click surfaces the reason as the transient footer notice and bumps the shake
         // trigger every time, so repeat clicks re-shake even while the text is unchanged.
         XCTAssertNil(store.pinLimitNotice)
         XCTAssertEqual(store.pinNoticeShakeTrigger, 0)
-        store.notePinDenied("a.m3")
-        XCTAssertEqual(store.pinLimitNotice, "Up to 2 stars per provider")
+        store.notePinDenied("a.m4")
+        XCTAssertEqual(store.pinLimitNotice, "Up to 3 stars per provider")
         XCTAssertEqual(store.pinNoticeShakeTrigger, 1)
-        store.notePinDenied("a.m3")
+        store.notePinDenied("a.m4")
         XCTAssertEqual(store.pinNoticeShakeTrigger, 2)
     }
 
@@ -125,6 +129,39 @@ final class MenuBarPinTests: XCTestCase {
         XCTAssertFalse(store.isPinned("ghost.metric"))
     }
 
+    func testNextResetStaysUnpinnedOnUpgradeAndCanUseThirdSlotManually() {
+        let provider = CodexProvider()
+        let registry = WidgetRegistry.from([provider])
+        let defaults = makeDefaults("next-reset-upgrade")
+        let old = LayoutStore(
+            registry: registry, defaults: defaults, storageKey: "layout",
+            defaultMetricIDs: DefaultLayout.metricIDs.filter { $0 != "codex.nextReset" },
+            defaultPinnedMetricIDs: ["codex.session", "codex.weekly"]
+        )
+        old.persist()
+        old.persistPins()
+
+        let upgraded = LayoutStore(registry: registry, defaults: defaults, storageKey: "layout")
+        XCTAssertTrue(upgraded.isMetricEnabled("codex.nextReset"))
+        XCTAssertFalse(upgraded.expandedMetricIDs.contains("codex.nextReset"))
+        XCTAssertFalse(upgraded.isPinned("codex.nextReset"))
+        upgraded.setPinned(true, for: "codex.nextReset")
+        XCTAssertTrue(upgraded.isPinned("codex.nextReset"))
+        XCTAssertEqual(upgraded.pinnedCount(forProvider: "codex"), 3)
+        upgraded.setPinned(false, for: "codex.nextReset")
+        XCTAssertFalse(LayoutStore(registry: registry, defaults: defaults, storageKey: "layout").isPinned("codex.nextReset"))
+
+        let emptyDefaults = makeDefaults("next-reset-empty-upgrade")
+        let empty = LayoutStore(
+            registry: registry, defaults: emptyDefaults, storageKey: "layout",
+            defaultMetricIDs: DefaultLayout.metricIDs.filter { $0 != "codex.nextReset" },
+            defaultPinnedMetricIDs: []
+        )
+        empty.persist()
+        empty.persistPins()
+        XCTAssertTrue(LayoutStore(registry: registry, defaults: emptyDefaults, storageKey: "layout").pinnedMetricIDs.isEmpty)
+    }
+
     // MARK: - Fixtures
 
     private func makeStore(_ name: String) -> LayoutStore {
@@ -137,7 +174,7 @@ final class MenuBarPinTests: XCTestCase {
             Provider(id: id, displayName: id.uppercased(), icon: .providerMark("cursor"))
         }
         let descriptors = providers.flatMap { provider in
-            (1...3).map { n in metric(provider, id: "\(provider.id).m\(n)", label: "M\(n)") }
+            (1...4).map { n in metric(provider, id: "\(provider.id).m\(n)", label: "M\(n)") }
         }
         return WidgetRegistry(providers: providers, descriptors: descriptors)
     }

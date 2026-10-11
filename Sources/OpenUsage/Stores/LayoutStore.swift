@@ -46,7 +46,7 @@ final class LayoutStore {
 
     /// Descriptor ids pinned to the menu bar. Membership only — display order is derived from the
     /// provider + metric order above, so pins follow the same sequence shown in Customize. Capped via
-    /// `canPin` to at most `maxPinsPerProvider` per provider (the strip stacks a provider's values in pairs).
+    /// `canPin` to at most `maxPinsPerProvider` per provider.
     private(set) var pinnedMetricIDs: Set<String>
 
     /// Descriptor ids that sit below the per-provider "Shown on expand" divider: the dashboard hides
@@ -259,9 +259,8 @@ final class LayoutStore {
 
     // MARK: - Menu bar pins
 
-    /// Per-provider cap is a rendering constraint — the Text strip stacks a provider's values two to a
-    /// column, so a third would not fit the menu bar height.
-    static let maxPinsPerProvider = 2
+    /// Values use columns of at most two rows, so the third pin adds width rather than height.
+    static let maxPinsPerProvider = 3
 
     func isPinned(_ descriptorID: String) -> Bool { pinnedMetricIDs.contains(descriptorID) }
 

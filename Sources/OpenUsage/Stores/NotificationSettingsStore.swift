@@ -1,8 +1,8 @@
 import Foundation
 import Observation
 
-/// User preferences for quota pace notifications: the three per-milestone triggers (no master switch —
-/// turn all three off to silence). All default OFF; the app requests notification authorization the
+/// User preferences for quota pace and Codex announcement notifications. All default OFF;
+/// the app requests notification authorization the
 /// first time a trigger is turned on, so a fresh install stays quiet until the user opts in.
 ///
 /// Persisted in `UserDefaults` (each key independently, with an unset key defaulting to `false`).
@@ -15,6 +15,11 @@ final class NotificationSettingsStore {
     private static let underTenKey = "openusage.notifications.underTenPercent"
     private static let healthyToCloseKey = "openusage.notifications.healthyToClose"
     private static let closeToRunningOutKey = "openusage.notifications.closeToRunningOut"
+    private static let codexResetKey = "openusage.notifications.codexResetAnnouncements"
+
+    var codexResetAnnouncements: Bool {
+        didSet { defaults.set(codexResetAnnouncements, forKey: Self.codexResetKey) }
+    }
 
     /// Alert the first time a metric drops under 10% remaining for the period.
     var underTenPercent: Bool {
@@ -36,6 +41,7 @@ final class NotificationSettingsStore {
         self.underTenPercent = defaults.bool(forKey: Self.underTenKey, default: false)
         self.healthyToClose = defaults.bool(forKey: Self.healthyToCloseKey, default: false)
         self.closeToRunningOut = defaults.bool(forKey: Self.closeToRunningOutKey, default: false)
+        self.codexResetAnnouncements = defaults.bool(forKey: Self.codexResetKey, default: false)
     }
 
     /// The per-milestone toggles as the pure logic consumes them.
@@ -47,15 +53,14 @@ final class NotificationSettingsStore {
         )
     }
 
-    /// True when at least one trigger is on — used to decide whether to request authorization (when the
-    /// first trigger is turned on) and whether the Settings permission notice should show. Turning all
-    /// three off silences everything.
-    var anyEnabled: Bool { underTenPercent || healthyToClose || closeToRunningOut }
+    /// Shared gate for notification authorization and the Settings permission notice.
+    var anyEnabled: Bool { underTenPercent || healthyToClose || closeToRunningOut || codexResetAnnouncements }
 
-    /// Restores all three triggers to their default (off) — the Settings "Reset All Settings" path.
+    /// Restores every alert to its default (off).
     func resetToDefaults() {
         underTenPercent = false
         healthyToClose = false
         closeToRunningOut = false
+        codexResetAnnouncements = false
     }
 }

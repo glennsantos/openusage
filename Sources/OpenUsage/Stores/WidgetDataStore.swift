@@ -33,6 +33,7 @@ final class WidgetDataStore {
     /// Quota-notification preferences (three independent triggers). Injected; `nil` disables
     /// notifications entirely (tests and previews that don't wire it).
     private let notificationSettings: (@MainActor () -> NotificationSettingsStore)?
+    private let codexResetMonitor: CodexResetMonitor?
     /// Card id → the account identity currently signed in there, resolved once at launch by
     /// `ProviderAccountAssembly`. Drives the snapshot cache's account stamp: writes record the
     /// producer, and launch loads only paint an entry whose stamp matches. A card absent here has an
@@ -142,6 +143,7 @@ final class WidgetDataStore {
         slowProviderRefreshThreshold: TimeInterval = WidgetDataStore.defaultSlowProviderRefreshThreshold,
         providerRefreshTimeout: TimeInterval = WidgetDataStore.defaultProviderRefreshTimeout,
         notificationSettings: (@MainActor () -> NotificationSettingsStore)? = nil,
+        codexResetMonitor: CodexResetMonitor? = nil,
         postNotification: (@MainActor (String, String, String, String) async -> Bool)? = nil,
         providerIdentityKeys: [String: String] = [:]
     ) {
@@ -158,6 +160,7 @@ final class WidgetDataStore {
         self.slowProviderRefreshThreshold = slowProviderRefreshThreshold
         self.providerRefreshTimeout = providerRefreshTimeout
         self.notificationSettings = notificationSettings
+        self.codexResetMonitor = codexResetMonitor
         self.postNotification = postNotification
             ?? { idPrefix, title, subtitle, body in
                 await AppNotifications.shared.post(idPrefix: idPrefix, title: title, subtitle: subtitle, body: body)
@@ -546,7 +549,9 @@ final class WidgetDataStore {
 
     func data(for descriptor: WidgetDescriptor) -> WidgetData {
         var result: WidgetData
-        if let snapshot = snapshots[descriptor.providerID],
+        if CodexResetMonitor.isNextReset(descriptor), let codexResetMonitor {
+            result = codexResetMonitor.widgetData(for: descriptor)
+        } else if let snapshot = snapshots[descriptor.providerID],
            let line = snapshot.line(label: descriptor.metricLabel),
            let data = resolve(line, descriptor: descriptor) {
             result = data

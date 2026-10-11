@@ -3,7 +3,7 @@ import SwiftUI
 
 /// Renders the Text-style menu-bar strip (`MenuBarContent`) into a template `NSImage` for the
 /// `MenuBarExtra` label: provider mark + bare value for a single metric, or a tight labeled stack for
-/// two. Black-on-clear so macOS tints it for light/dark; sized to its natural width. The image is built
+/// pairs, with a third pin beside the pair. Black-on-clear so macOS tints it for light/dark. The image is built
 /// outside the `label:` view builder (an `ImageRenderer` inline there throws obscure errors).
 @MainActor
 enum MenuBarStripRenderer {
@@ -92,8 +92,17 @@ enum MenuBarStripRenderer {
     /// The compact Bars glyph (≤4 bounded-metric bars), or `nil` when no pinned metric has a fill.
     static func barsImage(for content: MenuBarContent) -> NSImage? {
         let fractions = content.bars.map(\.fraction)
-        guard !fractions.isEmpty else { return nil }
-        let renderer = ImageRenderer(content: MenuBarBars(fractions: fractions, side: 18))
+        let resets = content.groups.flatMap(\.metrics).filter(\.isResetAnnouncement)
+        guard !fractions.isEmpty || !resets.isEmpty else { return nil }
+        let renderer = ImageRenderer(content: HStack(spacing: 5) {
+            if !fractions.isEmpty { MenuBarBars(fractions: fractions, side: 18) }
+            if let reset = resets.first {
+                Text("Reset \(reset.value)")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.black)
+                    .fixedSize()
+            }
+        })
         renderer.scale = 2
         guard let image = renderer.nsImage else { return nil }
         image.isTemplate = true
@@ -172,12 +181,20 @@ private struct MenuBarTextStrip: View {
         .fixedSize()
     }
 
-    /// A provider's pinned values, no labels: one metric as a single large number, two stacked on two
-    /// tight lines (much narrower than side-by-side), read positionally.
+    /// Columns of two keep the strip within the menu bar's height when a third metric is pinned.
     @ViewBuilder
     private func metricsView(_ metrics: [MenuBarContent.Metric]) -> some View {
-        if metrics.count <= 1 {
-            Text(metrics.first?.value ?? "")
+        HStack(spacing: 6) {
+            ForEach(Array(stride(from: 0, to: metrics.count, by: 2)), id: \.self) { start in
+                metricColumn(Array(metrics[start..<min(start + 2, metrics.count)]))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func metricColumn(_ metrics: [MenuBarContent.Metric]) -> some View {
+        if metrics.count == 1 {
+            Text(metrics[0].value)
                 .font(.system(size: 12, weight: .bold))
         } else {
             VStack(alignment: .trailing, spacing: -2) {

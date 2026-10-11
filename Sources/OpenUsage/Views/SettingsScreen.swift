@@ -265,10 +265,7 @@ struct SettingsScreen: View {
 
     // MARK: - Notifications
 
-    /// Quota pace notifications: three per-trigger toggles (no master switch — turn all three off to
-    /// silence), each with an (i) tooltip. A warning glyph on the section header and an action row under
-    /// the toggles appear when macOS permission isn't authorized and at least one trigger is on. Defaults
-    /// are all off; the app requests authorization the first time a trigger is turned on.
+    /// Quota and announcement alerts share the authorization warning and action row.
     private var notificationsSection: some View {
         @Bindable var notifications = container.notificationSettings
         let needsAttention = notificationsAuth != .authorized && anyToggleOn
@@ -291,6 +288,8 @@ struct SettingsScreen: View {
                 notifToggleRow(.underTenPercent, isOn: $notifications.underTenPercent)
                 notifToggleRow(.healthyToClose, isOn: $notifications.healthyToClose)
                 notifToggleRow(.closeToRunningOut, isOn: $notifications.closeToRunningOut)
+                Divider()
+                CodexResetAlertsSection(settings: notifications, monitor: container.codexResetMonitor)
                 if needsAttention {
                     notificationsActionRow
                 }

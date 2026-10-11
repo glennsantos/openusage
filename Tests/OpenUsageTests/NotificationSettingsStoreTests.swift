@@ -11,6 +11,7 @@ final class NotificationSettingsStoreTests: XCTestCase {
         store.underTenPercent = true
         store.healthyToClose = true
         store.closeToRunningOut = true
+        store.codexResetAnnouncements = true
 
         store.resetToDefaults()
 
@@ -20,5 +21,15 @@ final class NotificationSettingsStoreTests: XCTestCase {
         XCTAssertFalse(reloaded.underTenPercent)
         XCTAssertFalse(reloaded.healthyToClose)
         XCTAssertFalse(reloaded.closeToRunningOut)
+        XCTAssertFalse(reloaded.codexResetAnnouncements)
+    }
+
+    func testResetAnnouncementsPersistAndCountForPermission() {
+        let defaults = UserDefaults(suiteName: "OpenUsageTests.reset-alert-setting.\(UUID().uuidString)")!
+        let store = NotificationSettingsStore(defaults: defaults)
+        XCTAssertFalse(store.codexResetAnnouncements)
+        store.codexResetAnnouncements = true
+        XCTAssertTrue(store.anyEnabled)
+        XCTAssertTrue(NotificationSettingsStore(defaults: defaults).codexResetAnnouncements)
     }
 }

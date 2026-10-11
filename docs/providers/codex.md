@@ -10,10 +10,14 @@ Tracks your ChatGPT/Codex subscription limits using the login from the Codex CLI
 | Weekly | 7-day window usage |
 | Spark / Spark Weekly | GPT-5.3-Codex-Spark model limits — a 5-hour and a weekly window. Shown only when your account has the limit (otherwise "No data"), and tucked below the "show more" caret by default |
 | Rate Limit Resets | On-demand rate-limit reset credits, shown as a count (e.g. `2 available`) with a colored dot for the soonest expiry; hover the value for a timeline of each credit's expiry |
+| Next Reset | The expected next banked or regular reset from [Codex Resets](https://codex-resets.com/), shown in your Mac's local time. Enabled and Always Visible by default, after Rate Limit Resets in the default metric order. Unstarred by default, so it stays inside the popover. |
 | Extra Usage | Flex credits, shown verbatim as dollars + credits (e.g. `$31.84 · 796 credits`) |
 | Today / Yesterday / Last 30 Days | Local spend, as cost, tokens, or both (see below) |
 
 When Codex reports your plan name, OpenUsage shows it beside the provider name.
+
+**Next Reset** follows public announcements, separately from your account's Session and Weekly reset timers. A scheduled time reads **By** that time. An announcement without a deadline reads **Time Not Announced**. After the deadline passes it reads **Awaiting Confirmation** until the tracker confirms completion or withdraws the announcement. With no upcoming announcement, the dashboard reads **Not Announced** and the menu bar hides this metric. A tracker failure reads **Unavailable**, hides the expected time in the menu bar, and shows a friendly error in Settings. The row's **Codex Resets** link opens the source. All Codex account cards share one feed, and a public reset report does not prove that your particular account has received it. Notification alerts are controlled separately in [Settings](../settings.md#notifications).
+
 Pro plans use the current names **Pro 100**, **Pro 200**, and **Pro 500** instead of the older usage multipliers.
 
 | Usage API plan | Display name |

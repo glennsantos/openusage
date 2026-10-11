@@ -68,6 +68,7 @@ final class CodexProvider: ProviderRuntime {
                 .exportingLimit("creditValue", kind: .balance, unit: "usd", source: .value(kind: .dollars)),
             .values(id: "\(provider.id).rateLimitResets", provider: provider, title: "Rate Limit Resets", metricLabel: "Rate Limit Resets", traySuffix: "resets", showsResetExpiries: true)
                 .exportingLimit("rateLimitResets", kind: .balance, unit: "resets", source: .value(kind: .count, label: "available")),
+            .badge(id: "\(provider.id).nextReset", provider: provider, title: "Next Reset"),
             .usageTrend(provider: provider)
                 .exportingHistory(
                     scope: .machineLocal,

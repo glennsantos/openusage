@@ -49,6 +49,11 @@ struct WidgetData: Hashable {
     var periodDurationMs: Int?
     var valueTextOverride: String?
     var subtitleOverride: String?
+    struct SourceLink: Hashable {
+        let label: String
+        let url: URL
+    }
+    var sourceLink: SourceLink?
     var limitNoun: String?     // word after a dollar limit, e.g. "$100 limit" (defaults to "limit")
     /// Fixed trailing word for an unbounded row, e.g. "left" for an extra balance or "spent" for a
     /// spend estimate. When set it replaces the global left/used mode word.
@@ -61,6 +66,8 @@ struct WidgetData: Hashable {
     /// False when no real provider metric backs this tile. The view then shows a "No data" state
     /// instead of the descriptor's placeholder template numbers. True for real data and direct fixtures.
     var hasData: Bool = true
+    /// Some status rows stay readable on the dashboard while having no event to announce in the tray.
+    var showsInMenuBar: Bool = true
     /// Raw numbers for an unbounded `.values` row (empty for meters). The view
     /// formats these at render time instead of reading a baked string — see `unboundedDetail`.
     var values: [MetricValue] = []
